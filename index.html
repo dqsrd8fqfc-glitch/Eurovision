@@ -8,9 +8,9 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  const SUPABASE_URL = 'https://nnufhtnximeoaejcesil.db.co';
+  const SUPABASE_URL = 'https://nnufhtnximeoaejcesil.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_0a0lFDXY85ocX7hI2bWaWw_7ty4W1TD';
-  window.dbClient = window.db.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  window.dbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 </script>
 
 <style>
