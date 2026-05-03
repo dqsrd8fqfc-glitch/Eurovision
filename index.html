@@ -729,14 +729,6 @@ main { padding-bottom: 40px; }
 (function() {
   'use strict';
 
-  // ═══════════════════════════════════════════════════════════════
-  // Country data — Eurovision 2026 GRAND FINAL (Vienna, 16 May)
-  // ═══════════════════════════════════════════════════════════════
-  // 35 countries entered (semi-final lineup until finalists known).
-  // Edit `running` numbers once the official running order is announced
-  // — the list will re-sort automatically. youtube = the video ID only,
-  // not the full URL (the bit after `youtu.be/`).
-  // ═══════════════════════════════════════════════════════════════
   var POINTS = [1, 2, 3, 4, 5, 6, 7, 8, 10, 12];
 
   var COUNTRIES = [
@@ -781,56 +773,8 @@ main { padding-bottom: 40px; }
   for (var i = 0; i < COUNTRIES.length; i++) COUNTRIES_BY_CODE[COUNTRIES[i].code] = COUNTRIES[i];
 
   // ═══════════════════════════════════════════════════════════════
-  // Demo seed data
+  // Cloud storage via Supabase
   // ═══════════════════════════════════════════════════════════════
-  var NOW = Date.now();
-  var SEED_USERS = {
-    alex:    { id: 'alex',    name: 'Alex',    joinedAt: NOW - 1000 * 60 * 22 },
-    beatriz: { id: 'beatriz', name: 'Beatriz', joinedAt: NOW - 1000 * 60 * 18 },
-    jamie:   { id: 'jamie',   name: 'Jamie',   joinedAt: NOW - 1000 * 60 * 11 },
-    priya:   { id: 'priya',   name: 'Priya',   joinedAt: NOW - 1000 * 60 * 5  }
-  };
-  var SEED_SCORES = {
-    alex:    { IT: 12, SE: 10, FI: 8, AT: 7, NO: 5, FR: 3, DE: 1 },
-    beatriz: { FI: 12, IT: 10, AT: 8, FR: 6, SE: 4, UA: 2 },
-    jamie:   { SE: 12, NO: 10, FI: 7, IT: 5, GB: 4, IL: 2 },
-    priya:   { AT: 12, IT: 8, GR: 6, GB: 4 }
-  };
-  var SEED_COMMENTS = {
-    c1: { id: 'c1', userId: 'alex',    userName: 'Alex',    country: 'IT', text: 'Sal Da Vinci is a STAR. This wins.',                  createdAt: NOW - 18 * 60000, likes: { beatriz: NOW - 17 * 60000, jamie: NOW - 16 * 60000, priya: NOW - 5 * 60000 } },
-    c2: { id: 'c2', userId: 'beatriz', userName: 'Beatriz', country: 'FI', text: 'Liekinheitin = flamethrower. Pyrotechnics off the chart.', createdAt: NOW - 14 * 60000, likes: { alex: NOW - 13 * 60000, jamie: NOW - 12 * 60000 } },
-    c3: { id: 'c3', userId: 'jamie',   userName: 'Jamie',   country: 'SE', text: 'Sweden always slays the production',                  createdAt: NOW -  9 * 60000, likes: { alex: NOW - 8 * 60000 } },
-    c4: { id: 'c4', userId: 'priya',   userName: 'Priya',   country: 'AT', text: 'Hometown advantage but Tanzschein genuinely slaps',  createdAt: NOW -  4 * 60000, likes: { beatriz: NOW - 3 * 60000, alex: NOW - 2 * 60000 } },
-    c5: { id: 'c5', userId: 'alex',    userName: 'Alex',    country: 'GB', text: 'Look Mum No Computer is going to be… something',     createdAt: NOW -  2 * 60000, likes: {} }
-  };
-
-  // Score events — each entry is when someone gave a score
-  function mkScoreEvent(id, userId, userName, country, points, minsAgo) {
-    return { id: id, userId: userId, userName: userName, country: country, points: points, createdAt: NOW - minsAgo * 60000 };
-  }
-  var SEED_SCORE_EVENTS = {
-    s1:  mkScoreEvent('s1',  'alex',    'Alex',    'IT', 12, 21),
-    s2:  mkScoreEvent('s2',  'alex',    'Alex',    'SE', 10, 20),
-    s3:  mkScoreEvent('s3',  'alex',    'Alex',    'FI',  8, 19),
-    s4:  mkScoreEvent('s4',  'beatriz', 'Beatriz', 'FI', 12, 17),
-    s5:  mkScoreEvent('s5',  'beatriz', 'Beatriz', 'IT', 10, 16),
-    s6:  mkScoreEvent('s6',  'alex',    'Alex',    'AT',  7, 15),
-    s7:  mkScoreEvent('s7',  'beatriz', 'Beatriz', 'AT',  8, 13),
-    s8:  mkScoreEvent('s8',  'alex',    'Alex',    'NO',  5, 12),
-    s9:  mkScoreEvent('s9',  'jamie',   'Jamie',   'SE', 12, 10),
-    s10: mkScoreEvent('s10', 'jamie',   'Jamie',   'NO', 10,  8),
-    s11: mkScoreEvent('s11', 'jamie',   'Jamie',   'FI',  7,  7),
-    s12: mkScoreEvent('s12', 'beatriz', 'Beatriz', 'FR',  6,  6),
-    s13: mkScoreEvent('s13', 'priya',   'Priya',   'AT', 12,  4),
-    s14: mkScoreEvent('s14', 'priya',   'Priya',   'IT',  8,  3),
-    s15: mkScoreEvent('s15', 'jamie',   'Jamie',   'GB',  4,  3),
-    s17: mkScoreEvent('s17', 'priya',   'Priya',   'GR',  6,  1)
-  };
-
-  // ═══════════════════════════════════════════════════════════════
-  // Local storage (will be replaced by Firebase later)
-  // ═══════════════════════════════════════════════════════════════
-   // Cloud storage via Supabase
   var SESSION_KEY = 'esc26_session_user';
   var ROOM_SESSION_KEY = 'esc26_session_room';
 
@@ -847,6 +791,10 @@ main { padding-bottom: 40px; }
 
   function freshStore() {
     return { rooms: {} };
+  }
+
+  function loadStore() {
+    return freshStore();
   }
 
   function loadSessionUser() {
@@ -882,7 +830,7 @@ main { padding-bottom: 40px; }
   }
 
   function resetStore() {
-    alert('Demo reset is not wired to Supabase yet.');
+    alert('Reset is not wired to Supabase yet.');
   }
 
   function mapRoomBundle(roomRow, usersRows, scoresRows, commentsRows, scoreEventRows) {
@@ -973,85 +921,63 @@ main { padding-bottom: 40px; }
     state.store.rooms[state.activeRoomCode] = room;
   }
 
-  // Convenience: live reference to the active room object
   function activeRoom() {
     if (!state.activeRoomCode) return null;
     return (state.store.rooms || {})[state.activeRoomCode] || null;
   }
 
-  // Generate a 4-letter room code that's not already taken
   function genRoomCode() {
-    var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; // skip I and O for legibility
+    var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
     for (var attempt = 0; attempt < 30; attempt++) {
       var code = '';
       for (var i = 0; i < 4; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
       if (!(state.store.rooms && state.store.rooms[code])) return code;
     }
-    // Highly unlikely fallback
     return 'R' + Date.now().toString(36).slice(-3).toUpperCase();
   }
 
-  // URL hash sync
   function readHashRoom() {
     var h = String(window.location.hash || '').replace(/^#/, '').trim().toUpperCase();
     return /^[A-Z0-9]{3,8}$/.test(h) ? h : null;
   }
+
   function writeHashRoom(code) {
     try {
       if (code) window.history.replaceState(null, '', '#' + code);
-      else      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+      else window.history.replaceState(null, '', window.location.pathname + window.location.search);
     } catch (e) {}
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  // App state
-  // ═══════════════════════════════════════════════════════════════
   var state = {
     store: loadStore(),
     user: loadSessionUser(),
-    activeRoomCode: null,     // set after lobby flow completes
-    lobbyStage: 'choose',     // choose | create | join | name
-    pendingRoomCode: null,    // chosen during create/join, before name entered
+    activeRoomCode: null,
+    lobbyStage: 'choose',
+    pendingRoomCode: null,
     lobbyError: '',
-    view: 'welcome',          // welcome | main | country | profile
+    view: 'welcome',
     activeCountry: null,
     profileUserId: null,
-    tab: 'countries',         // countries | board | activity
-    boardTab: 'countries',    // countries | players
+    tab: 'countries',
+    boardTab: 'countries',
     draftComment: ''
   };
 
-  // Hydrate active room from session/URL hash on first load
-  (function hydrateRoom() {
-    var hashRoom = readHashRoom();
-    var sessionRoom = loadSessionRoom();
-    var candidate = hashRoom || sessionRoom;
-    if (candidate && state.store.rooms && state.store.rooms[candidate]) {
-      state.activeRoomCode = candidate;
-      saveSessionRoom(candidate);
-      writeHashRoom(candidate);
-    } else if (hashRoom && !(state.store.rooms && state.store.rooms[hashRoom])) {
-      // URL pointed at a room that doesn't exist locally — pre-fill the join box
-      state.lobbyStage = 'join';
-      state.pendingRoomCode = hashRoom;
-    }
-  })();
-
-  // ═══════════════════════════════════════════════════════════════
-  // Helpers
-  // ═══════════════════════════════════════════════════════════════
   function nameToId(name) {
     var s = String(name || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
     return s || ('guest_' + Math.random().toString(36).slice(2, 8));
   }
+
   function genId(prefix) {
     return prefix + '_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6);
   }
+
   function escapeHTML(s) {
     return String(s == null ? '' : s)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
+
   function formatRel(ts) {
     var d = Date.now() - ts;
     if (d < 30000) return 'just now';
@@ -1060,10 +986,11 @@ main { padding-bottom: 40px; }
     if (d < 86400000) return Math.floor(d / 3600000) + 'h';
     return Math.floor(d / 86400000) + 'd';
   }
+
   function pivotScores() {
-    // {userId: {country: pts}} -> {country: {userId: pts}}
     var byCountry = {};
-    var su = activeRoom().scores || {};
+    var room = activeRoom();
+    var su = room ? (room.scores || {}) : {};
     for (var uid in su) {
       var us = su[uid] || {};
       for (var cc in us) {
@@ -1074,22 +1001,31 @@ main { padding-bottom: 40px; }
     return byCountry;
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  // Mutations
-  // ═══════════════════════════════════════════════════════════════
-  function joinUser(rawName) {
+  async function joinUser(rawName) {
     var nm = String(rawName || '').trim();
-    if (!nm) return;
+    if (!nm || !state.activeRoomCode) return;
+
     var id = nameToId(nm);
     var u = { id: id, name: nm, joinedAt: Date.now() };
-    if (!activeRoom().users[id]) activeRoom().users[id] = u;
-    else activeRoom().users[id].name = nm;
+
+    var res = await supabase.from('users').upsert({
+      id: id,
+      room_code: state.activeRoomCode,
+      name: nm
+    });
+
+    if (res.error) {
+      alert('Could not join room right now.');
+      return;
+    }
+
     state.user = u;
     saveSessionUser(u);
-    saveStore();
+    await refreshActiveRoom();
     state.view = 'main';
     render();
   }
+
   function resumeUser(u) {
     if (!u) return;
     state.user = u;
@@ -1097,16 +1033,16 @@ main { padding-bottom: 40px; }
     state.view = 'main';
     render();
   }
+
   function logout() {
-    // Sign out the current user but keep them in the same room
     clearSessionUser();
     state.user = null;
     state.view = 'welcome';
     state.lobbyStage = state.activeRoomCode ? 'name' : 'choose';
     render();
   }
+
   function leaveRoom() {
-    // Full reset: exit the room and the user identity
     clearSessionUser();
     clearSessionRoom();
     writeHashRoom(null);
@@ -1119,111 +1055,152 @@ main { padding-bottom: 40px; }
     render();
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  // Room actions
-  // ═══════════════════════════════════════════════════════════════
-  function createRoom(name) {
+  async function createRoom(name) {
     var code = genRoomCode();
-    var room = freshRoom();
-    room.name = String(name || '').trim() || ('Room ' + code);
-    if (!state.store.rooms) state.store.rooms = {};
-    state.store.rooms[code] = room;
+    var roomName = String(name || '').trim() || ('Room ' + code);
+
+    var res = await supabase.from('rooms').insert({
+      code: code,
+      name: roomName
+    });
+
+    if (res.error) {
+      state.lobbyError = 'Could not create room. Try again.';
+      render();
+      return;
+    }
+
     state.activeRoomCode = code;
     state.pendingRoomCode = null;
     state.lobbyStage = 'name';
     state.lobbyError = '';
-    saveStore();
     saveSessionRoom(code);
     writeHashRoom(code);
+
+    await refreshActiveRoom();
     render();
   }
-  function joinRoom(rawCode) {
+
+  async function joinRoom(rawCode) {
     var code = String(rawCode || '').trim().toUpperCase();
+
     if (!code) {
       state.lobbyError = 'Enter a room code.';
       render();
       return;
     }
-    if (!(state.store.rooms && state.store.rooms[code])) {
-      state.lobbyError = 'No room with that code. Check with whoever shared it.';
+
+    try {
+      var room = await fetchRoomFromCloud(code);
+
+      if (!room) {
+        state.lobbyError = 'No room with that code. Check with whoever shared it.';
+        render();
+        return;
+      }
+
+      if (!state.store.rooms) state.store.rooms = {};
+      state.store.rooms[code] = room;
+      state.activeRoomCode = code;
+      state.pendingRoomCode = null;
+      state.lobbyStage = 'name';
+      state.lobbyError = '';
+      saveSessionRoom(code);
+      writeHashRoom(code);
       render();
-      return;
+    } catch (err) {
+      state.lobbyError = 'Could not join room right now.';
+      render();
     }
-    state.activeRoomCode = code;
-    state.pendingRoomCode = null;
-    state.lobbyStage = 'name';
-    state.lobbyError = '';
-    saveSessionRoom(code);
-    writeHashRoom(code);
-    render();
   }
-  function setScore(countryCode, points) {
-    if (!state.user) return;
+
+  async function setScore(countryCode, points) {
+    if (!state.user || !state.activeRoomCode) return;
+
     var uid = state.user.id;
-    if (!activeRoom().scores[uid]) activeRoom().scores[uid] = {};
-    var prev = activeRoom().scores[uid][countryCode];
+    var prev = activeRoom().scores[uid] ? activeRoom().scores[uid][countryCode] : null;
+
     if (points === null) {
-      delete activeRoom().scores[uid][countryCode];
+      var delRes = await supabase
+        .from('scores')
+        .delete()
+        .eq('room_code', state.activeRoomCode)
+        .eq('user_id', uid)
+        .eq('country_code', countryCode);
+
+      if (delRes.error) {
+        alert('Could not clear score right now.');
+        return;
+      }
     } else {
-      activeRoom().scores[uid][countryCode] = points;
+      var scoreRes = await supabase.from('scores').upsert({
+        room_code: state.activeRoomCode,
+        user_id: uid,
+        country_code: countryCode,
+        points: points
+      });
+
+      if (scoreRes.error) {
+        alert('Could not save score right now.');
+        return;
+      }
+
+      if (prev !== points) {
+        await supabase.from('score_events').insert({
+          id: genId('s'),
+          room_code: state.activeRoomCode,
+          user_id: state.user.id,
+          user_name: state.user.name,
+          country: countryCode,
+          points: points,
+          prev: (prev != null ? prev : null)
+        });
+      }
     }
-    // Record event (skip if it's a duplicate of the previous value)
-    if (points !== null && prev !== points) {
-      var ev = {
-        id: genId('s'),
-        userId: state.user.id,
-        userName: state.user.name,
-        country: countryCode,
-        points: points,
-        prev: (prev != null ? prev : null),
-        createdAt: Date.now()
-      };
-      if (!activeRoom().scoreEvents) activeRoom().scoreEvents = {};
-      activeRoom().scoreEvents[ev.id] = ev;
-    }
-    saveStore();
+
+    await refreshActiveRoom();
     render();
   }
-  function postComment(countryCode, text) {
-    if (!state.user) return;
+
+  async function postComment(countryCode, text) {
+    if (!state.user || !state.activeRoomCode) return;
+
     var t = String(text || '').trim();
     if (!t) return;
-    var c = {
+
+    var res = await supabase.from('comments').insert({
       id: genId('c'),
-      userId: state.user.id,
-      userName: state.user.name,
+      room_code: state.activeRoomCode,
+      user_id: state.user.id,
+      user_name: state.user.name,
       country: countryCode,
-      text: t.slice(0, 280),
-      createdAt: Date.now()
-    };
-    activeRoom().comments[c.id] = c;
+      text: t.slice(0, 280)
+    });
+
+    if (res.error) {
+      alert('Could not post comment right now.');
+      return;
+    }
+
     state.draftComment = '';
-    saveStore();
+    await refreshActiveRoom();
     render();
   }
-  function deleteComment(cid) {
-    delete activeRoom().comments[cid];
-    saveStore();
+
+  async function deleteComment(cid) {
+    var res = await supabase.from('comments').delete().eq('id', cid);
+    if (res.error) {
+      alert('Could not delete comment right now.');
+      return;
+    }
+    await refreshActiveRoom();
     render();
   }
 
   function toggleLike(cid) {
-    if (!state.user) return;
-    var c = activeRoom().comments[cid];
-    if (!c) return;
-    if (!c.likes) c.likes = {};
-    if (c.likes[state.user.id]) {
-      delete c.likes[state.user.id];
-    } else {
-      c.likes[state.user.id] = Date.now();
-    }
-    saveStore();
-    render();
+    alert('Comment likes are not wired to Supabase yet.');
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  // Rendering
-  // ═══════════════════════════════════════════════════════════════
   var $app = document.getElementById('app');
 
   function render() {
@@ -1325,8 +1302,6 @@ main { padding-bottom: 40px; }
               errorHTML +
               '<button id="join-go" class="go-btn"' + (prefilled ? '' : ' disabled') + '>Join Room →</button>' +
             '</div>' +
-            '<div class="lobby-divider"><span>or</span></div>' +
-            '<button id="try-demo" class="lobby-secondary">Try the demo room</button>' +
             '<button id="back-to-choose" class="lobby-link">← Back</button>' +
             '<div class="bottom-note">Scores 1·2·3·4·5·6·7·8·10·12</div>' +
             '<div class="credit">Created by Nick</div>' +
@@ -1334,8 +1309,6 @@ main { padding-bottom: 40px; }
         '</div>';
     }
 
-    // Default: choose
-    var roomCount = state.store.rooms ? Object.keys(state.store.rooms).length : 0;
     return '' +
       '<div class="welcome">' +
         '<div class="fade">' +
@@ -1351,29 +1324,30 @@ main { padding-bottom: 40px; }
               '<div class="lobby-primary-sub">You\'ve got a 4-letter code from someone</div>' +
             '</button>' +
           '</div>' +
-          '<div class="lobby-divider"><span>or</span></div>' +
-          '<button id="try-demo" class="lobby-secondary">Try the demo room</button>' +
           '<div class="bottom-note">Scores 1·2·3·4·5·6·7·8·10·12</div>' +
-            '<div class="credit">Created by Nick</div>' +
+          '<div class="credit">Created by Nick</div>' +
         '</div>' +
       '</div>';
   }
 
   function renderMain() {
-    var totalActivity = Object.keys(activeRoom().comments).length + Object.keys(activeRoom().scoreEvents || {}).length;
     var room = activeRoom();
-    var roomLabel = (room && room.name) ? room.name : 'Room';
-    var isDemo = state.activeRoomCode === 'DEMO';
+    if (!room) {
+      state.view = 'welcome';
+      return renderWelcome();
+    }
+
+    var totalActivity = Object.keys(room.comments).length + Object.keys(room.scoreEvents || {}).length;
+    var roomLabel = room.name ? room.name : 'Room';
 
     var roomBannerHTML =
-      '<div class="room-banner' + (isDemo ? ' demo' : '') + '">' +
+      '<div class="room-banner">' +
         '<div class="room-banner-info">' +
           '<span class="room-banner-name">' + escapeHTML(roomLabel) + '</span>' +
           '<span class="room-banner-code">' + escapeHTML(state.activeRoomCode) + '</span>' +
         '</div>' +
         '<div class="room-banner-actions">' +
           '<button id="share-room" class="room-banner-btn" title="Share room code">Share</button>' +
-          (isDemo ? '<button id="reset-demo" class="room-banner-btn">reset</button>' : '') +
           '<button id="leave-room-btn" class="room-banner-btn subtle" title="Leave room">Leave</button>' +
         '</div>' +
       '</div>';
@@ -1405,20 +1379,19 @@ main { padding-bottom: 40px; }
   }
 
   function renderPlayersStrip() {
-    var users = activeRoom().users || {};
+    var room = activeRoom();
+    var users = room ? (room.users || {}) : {};
     var me = state.user ? state.user.id : null;
 
-    // Build list of others, with "last active" timestamp = max of joinedAt
-    // and any score event / comment they've made
     var lastActive = {};
-    var se = activeRoom().scoreEvents || {};
+    var se = room ? (room.scoreEvents || {}) : {};
     for (var sk in se) {
       var ev = se[sk];
       if (ev.userId && (lastActive[ev.userId] == null || ev.createdAt > lastActive[ev.userId])) {
         lastActive[ev.userId] = ev.createdAt;
       }
     }
-    var cm = activeRoom().comments || {};
+    var cm = room ? (room.comments || {}) : {};
     for (var ck in cm) {
       var c = cm[ck];
       if (c.userId && (lastActive[c.userId] == null || c.createdAt > lastActive[c.userId])) {
@@ -1443,7 +1416,6 @@ main { padding-bottom: 40px; }
 
     var pillsHTML = others.map(function(p) {
       var initial = p.name ? p.name.charAt(0).toUpperCase() : '?';
-      // "Active" if we've seen activity in the last 5 minutes
       var isActive = (Date.now() - p.lastActive) < 5 * 60000;
       return '' +
         '<button class="player-chip" data-profile="' + escapeHTML(p.id) + '" title="' + escapeHTML(p.name) + '">' +
@@ -1466,9 +1438,10 @@ main { padding-bottom: 40px; }
   }
 
   function renderCountriesList() {
+    var room = activeRoom();
     var byCountry = pivotScores();
     var commentsByCountry = {};
-    var allCmts = activeRoom().comments;
+    var allCmts = room.comments || {};
     for (var k in allCmts) {
       var c = allCmts[k];
       commentsByCountry[c.country] = (commentsByCountry[c.country] || 0) + 1;
@@ -1479,9 +1452,7 @@ main { padding-bottom: 40px; }
       var bSm = byCountry[b.code] || {};
       var aVoted = aSm[state.user.id] != null ? 1 : 0;
       var bVoted = bSm[state.user.id] != null ? 1 : 0;
-      // Unvoted first
       if (aVoted !== bVoted) return aVoted - bVoted;
-      // Within each group, sort by running order
       return (a.running || 999) - (b.running || 999);
     });
 
@@ -1583,6 +1554,7 @@ main { padding-bottom: 40px; }
           '<div class="trophy-pts"><div class="n">' + top.total + '</div><div class="l">points</div></div>' +
         '</div>' +
       '</div>';
+
     var restHTML = ranked.slice(1).map(function(r, i) {
       return '' +
         '<div class="rank-row fade" style="animation-delay:' + (i * 14) + 'ms">' +
@@ -1601,9 +1573,10 @@ main { padding-bottom: 40px; }
   }
 
   function renderBoardPlayers() {
-    var users = activeRoom().users;
-    var scoresByUser = activeRoom().scores;
-    var comments = activeRoom().comments;
+    var room = activeRoom();
+    var users = room.users || {};
+    var scoresByUser = room.scores || {};
+    var comments = room.comments || {};
 
     var playerList = [];
     for (var uid in users) {
@@ -1624,6 +1597,7 @@ main { padding-bottom: 40px; }
         scored: scoreKeys.length, cmtCount: cmtCount, douze: douze
       });
     }
+
     playerList.sort(function(a, b) {
       if (b.scored !== a.scored) return b.scored - a.scored;
       return a.joinedAt - b.joinedAt;
@@ -1664,10 +1638,10 @@ main { padding-bottom: 40px; }
   }
 
   function renderProfile() {
+    var room = activeRoom();
     var pid = state.profileUserId;
-    var u = activeRoom().users[pid];
+    var u = room.users[pid];
     if (!u) {
-      // Fallback: user not found
       return '' +
         '<header class="header"><div class="detail-header">' +
           '<button id="back-btn" class="icon-btn" aria-label="Back">' +
@@ -1681,8 +1655,7 @@ main { padding-bottom: 40px; }
     var isMe = pid === state.user.id;
     var initial = u.name ? u.name.charAt(0).toUpperCase() : '?';
 
-    // Their scores, sorted by points desc
-    var theirScores = activeRoom().scores[pid] || {};
+    var theirScores = room.scores[pid] || {};
     var scoreList = [];
     for (var cc in theirScores) {
       var country = COUNTRIES_BY_CODE[cc];
@@ -1693,13 +1666,11 @@ main { padding-bottom: 40px; }
       return (a.country.running || 999) - (b.country.running || 999);
     });
 
-    // Their comments, newest first
     var theirComments = [];
-    var allCmts = activeRoom().comments;
+    var allCmts = room.comments;
     for (var ck in allCmts) if (allCmts[ck].userId === pid) theirComments.push(allCmts[ck]);
     theirComments.sort(function(a, b) { return b.createdAt - a.createdAt; });
 
-    // Aggregate stats
     var totalPointsAwarded = 0;
     for (var i = 0; i < scoreList.length; i++) totalPointsAwarded += scoreList[i].score;
     var totalUpvotesReceived = 0;
@@ -1708,7 +1679,6 @@ main { padding-bottom: 40px; }
       for (var lk in likes) totalUpvotesReceived++;
     }
 
-    // Score cards — small horizontal pills
     var scoresHTML = '';
     if (scoreList.length === 0) {
       scoresHTML = '<div class="profile-empty">No scores yet.</div>';
@@ -1727,7 +1697,6 @@ main { padding-bottom: 40px; }
       }).join('');
     }
 
-    // Comments list
     var commentsHTML = '';
     if (theirComments.length === 0) {
       commentsHTML = '<div class="profile-empty">No hot takes yet.</div>';
@@ -1750,7 +1719,6 @@ main { padding-bottom: 40px; }
       }).join('');
     }
 
-    // Upvotes given (likes I've placed on others' comments)
     var upvotesGiven = 0;
     var upvotedCommentsHTML = '';
     if (isMe) {
@@ -1808,31 +1776,27 @@ main { padding-bottom: 40px; }
             '<div class="stat-tile"><div class="v">' + totalUpvotesReceived + '</div><div class="l">♥ received</div></div>' +
           '</div>' +
         '</div>' +
-
         '<section class="section">' +
           '<div class="section-label">' + (isMe ? 'Your scores' : 'Their scores') + ' (' + scoreList.length + ')</div>' +
           '<div class="profile-scores">' + scoresHTML + '</div>' +
         '</section>' +
-
         '<section class="section">' +
           '<div class="section-label">' + (isMe ? 'Your hot takes' : 'Their hot takes') + ' (' + theirComments.length + ')</div>' +
           '<div class="profile-comments">' + commentsHTML + '</div>' +
         '</section>' +
-
         (isMe ?
           '<section class="section">' +
             '<div class="section-label">Comments you liked (' + upvotesGiven + ')</div>' +
             '<div class="profile-comments">' + upvotedCommentsHTML + '</div>' +
           '</section>' : '') +
-
         (logoutHTML ? '<div class="section" style="padding-bottom:40px">' + logoutHTML + '</div>' : '') +
       '</main>';
   }
 
   function renderActivity() {
-    // Build a unified feed: score events + comments
+    var room = activeRoom();
     var feed = [];
-    var c = activeRoom().comments;
+    var c = room.comments;
     for (var ck in c) {
       feed.push({
         kind: 'comment',
@@ -1844,7 +1808,8 @@ main { padding-bottom: 40px; }
         createdAt: c[ck].createdAt
       });
     }
-    var se = activeRoom().scoreEvents || {};
+
+    var se = room.scoreEvents || {};
     for (var sk in se) {
       feed.push({
         kind: 'score',
@@ -1857,6 +1822,7 @@ main { padding-bottom: 40px; }
         createdAt: se[sk].createdAt
       });
     }
+
     feed.sort(function(a, b) { return b.createdAt - a.createdAt; });
 
     if (feed.length === 0) {
@@ -1870,7 +1836,7 @@ main { padding-bottom: 40px; }
       var delay = Math.min(i * 12, 400);
 
       if (item.kind === 'comment') {
-        var likes = (activeRoom().comments[item.id] && activeRoom().comments[item.id].likes) || {};
+        var likes = (room.comments[item.id] && room.comments[item.id].likes) || {};
         var likeCount = 0;
         for (var lk in likes) likeCount++;
         var heartHTML = likeCount > 0 ? '<span class="act-hearts">♥ ' + likeCount + '</span>' : '';
@@ -1889,41 +1855,44 @@ main { padding-bottom: 40px; }
               '</div>' +
             '</div>' +
           '</button>';
-      } else {
-        // Score event
-        var isDouze = item.points === 12;
-        var verb = item.prev != null && item.prev !== item.points ? 'updated to' : 'gave';
-        var pointsHTML = '<span class="act-pts' + (isDouze ? ' douze' : '') + '">' + item.points + ' pt' + (item.points === 1 ? '' : 's') + '</span>';
-        return '' +
-          '<button class="act-card fade act-score" data-country="' + ctry.code + '" style="animation-delay:' + delay + 'ms">' +
-            '<div class="act-row">' +
-              '<div class="act-flag">' + ctry.flag + '</div>' +
-              '<div class="act-body">' +
-                '<div class="act-head">' +
-                  '<span class="act-author">' + who + '</span>' +
-                  '<span class="act-on">' + verb + ' ' + pointsHTML + ' to <span class="ct">' + escapeHTML(ctry.name) + '</span></span>' +
-                  '<span class="act-time">' + formatRel(item.createdAt) + '</span>' +
-                '</div>' +
+      }
+
+      var isDouze = item.points === 12;
+      var verb = item.prev != null && item.prev !== item.points ? 'updated to' : 'gave';
+      var pointsHTML = '<span class="act-pts' + (isDouze ? ' douze' : '') + '">' + item.points + ' pt' + (item.points === 1 ? '' : 's') + '</span>';
+      return '' +
+        '<button class="act-card fade act-score" data-country="' + ctry.code + '" style="animation-delay:' + delay + 'ms">' +
+          '<div class="act-row">' +
+            '<div class="act-flag">' + ctry.flag + '</div>' +
+            '<div class="act-body">' +
+              '<div class="act-head">' +
+                '<span class="act-author">' + who + '</span>' +
+                '<span class="act-on">' + verb + ' ' + pointsHTML + ' to <span class="ct">' + escapeHTML(ctry.name) + '</span></span>' +
+                '<span class="act-time">' + formatRel(item.createdAt) + '</span>' +
               '</div>' +
             '</div>' +
-          '</button>';
-      }
+          '</div>' +
+        '</button>';
     }).join('');
+
     return '<div class="activity-wrap">' + rowsHTML + '</div>';
   }
 
   function renderCountryDetail() {
+    var room = activeRoom();
     var country = state.activeCountry;
     var byCountry = pivotScores();
     var sMap = byCountry[country.code] || {};
     var allEntries = [];
     for (var uid in sMap) {
       allEntries.push({
-        uid: uid, score: sMap[uid],
-        name: (activeRoom().users[uid] && activeRoom().users[uid].name) || uid
+        uid: uid,
+        score: sMap[uid],
+        name: (room.users[uid] && room.users[uid].name) || uid
       });
     }
     allEntries.sort(function(a, b) { return b.score - a.score; });
+
     var total = 0;
     for (var i = 0; i < allEntries.length; i++) total += allEntries[i].score;
     var avg = allEntries.length ? (total / allEntries.length) : 0;
@@ -1969,7 +1938,7 @@ main { padding-bottom: 40px; }
         '</section>';
     }
 
-    var allCmts = activeRoom().comments;
+    var allCmts = room.comments;
     var cmts = [];
     for (var ck in allCmts) if (allCmts[ck].country === country.code) cmts.push(allCmts[ck]);
     cmts.sort(function(a, b) { return b.createdAt - a.createdAt; });
@@ -2062,27 +2031,21 @@ main { padding-bottom: 40px; }
       '</div>';
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  // Event binding
-  // ═══════════════════════════════════════════════════════════════
   function bindEvents() {
-    // Lobby — Choose stage
     var $lobbyCreate = document.getElementById('lobby-create');
     if ($lobbyCreate) $lobbyCreate.addEventListener('click', function() {
       state.lobbyStage = 'create';
       state.lobbyError = '';
       render();
     });
+
     var $lobbyJoin = document.getElementById('lobby-join');
     if ($lobbyJoin) $lobbyJoin.addEventListener('click', function() {
       state.lobbyStage = 'join';
       state.lobbyError = '';
       render();
     });
-    var $tryDemo = document.getElementById('try-demo');
-    if ($tryDemo) $tryDemo.addEventListener('click', function() {
-      joinRoom('DEMO');
-    });
+
     var $backChoose = document.getElementById('back-to-choose');
     if ($backChoose) $backChoose.addEventListener('click', function() {
       state.lobbyStage = 'choose';
@@ -2091,7 +2054,6 @@ main { padding-bottom: 40px; }
       render();
     });
 
-    // Lobby — Create stage
     var $roomNameIn = document.getElementById('room-name-input');
     var $createGo = document.getElementById('create-go');
     if ($roomNameIn && $createGo) {
@@ -2102,17 +2064,15 @@ main { padding-bottom: 40px; }
       setTimeout(function() { try { $roomNameIn.focus(); } catch (e) {} }, 30);
     }
 
-    // Lobby — Join stage
     var $roomCodeIn = document.getElementById('room-code-input');
     var $joinGo = document.getElementById('join-go');
     if ($roomCodeIn && $joinGo) {
       $roomCodeIn.addEventListener('input', function() {
-        // Force uppercase as they type
         var pos = $roomCodeIn.selectionStart;
         $roomCodeIn.value = $roomCodeIn.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
         try { $roomCodeIn.setSelectionRange(pos, pos); } catch (e) {}
         $joinGo.disabled = !$roomCodeIn.value.trim();
-        if (state.lobbyError) { state.lobbyError = ''; /* clear silently, no re-render to avoid wiping focus */ }
+        if (state.lobbyError) state.lobbyError = '';
       });
       $roomCodeIn.addEventListener('keydown', function(e) {
         if (e.key === 'Enter') { e.preventDefault(); joinRoom($roomCodeIn.value); }
@@ -2121,7 +2081,6 @@ main { padding-bottom: 40px; }
       setTimeout(function() { try { $roomCodeIn.focus(); } catch (e) {} }, 30);
     }
 
-    // Leave room from main banner (with confirm — they're an active player)
     var $leaveBtn = document.getElementById('leave-room-btn');
     if ($leaveBtn) $leaveBtn.addEventListener('click', function() {
       if (confirm('Leave this room? Your scores stay saved here for if you come back.')) {
@@ -2129,13 +2088,11 @@ main { padding-bottom: 40px; }
       }
     });
 
-    // Leave room from welcome screen — no confirm, they haven't done anything yet
     var $lobbyLeave = document.getElementById('lobby-leave-room');
     if ($lobbyLeave) $lobbyLeave.addEventListener('click', function() {
       leaveRoom();
     });
 
-    // Share room
     var $share = document.getElementById('share-room');
     if ($share) $share.addEventListener('click', function() {
       var url = window.location.origin + window.location.pathname + '#' + state.activeRoomCode;
@@ -2152,7 +2109,7 @@ main { padding-bottom: 40px; }
         prompt('Copy this link:', url);
       }
     });
-    // Welcome
+
     var $name = document.getElementById('name-input');
     var $join = document.getElementById('join-btn');
     if ($name && $join) {
@@ -2164,6 +2121,7 @@ main { padding-bottom: 40px; }
       });
       $join.addEventListener('click', function() { joinUser($name.value); });
     }
+
     var resumes = document.querySelectorAll('[data-resume]');
     for (var i = 0; i < resumes.length; i++) {
       (function(el) {
@@ -2175,20 +2133,17 @@ main { padding-bottom: 40px; }
       })(resumes[i]);
     }
 
-    // Demo banner reset
     var $reset = document.getElementById('reset-demo');
     if ($reset) $reset.addEventListener('click', function() {
       if (confirm('Reset demo data back to seeded state?')) resetStore();
     });
 
-    // Home button — bounce to welcome/lobby
     var $home = document.getElementById('home-btn');
     if ($home) $home.addEventListener('click', function() {
       logout();
       window.scrollTo(0, 0);
     });
 
-    // Profile button (the user's name in the header) — view own profile
     var $profile = document.getElementById('profile-btn');
     if ($profile) $profile.addEventListener('click', function() {
       state.profileUserId = state.user.id;
@@ -2197,7 +2152,6 @@ main { padding-bottom: 40px; }
       window.scrollTo(0, 0);
     });
 
-    // Tabs
     var tabs = document.querySelectorAll('[data-tab]');
     for (var t = 0; t < tabs.length; t++) {
       (function(el) {
@@ -2208,7 +2162,6 @@ main { padding-bottom: 40px; }
       })(tabs[t]);
     }
 
-    // Board sub-tabs
     var subtabs = document.querySelectorAll('[data-board-tab]');
     for (var st = 0; st < subtabs.length; st++) {
       (function(el) {
@@ -2219,23 +2172,30 @@ main { padding-bottom: 40px; }
       })(subtabs[st]);
     }
 
-    // Country open (from list or activity)
     var openers = document.querySelectorAll('[data-country]');
     for (var o = 0; o < openers.length; o++) {
       (function(el) {
         el.addEventListener('click', function() {
           var cc = el.getAttribute('data-country');
           var ctry = COUNTRIES_BY_CODE[cc];
-          if (ctry) { state.activeCountry = ctry; state.view = 'country'; state.draftComment = ''; render(); window.scrollTo(0, 0); }
+          if (ctry) {
+            state.activeCountry = ctry;
+            state.view = 'country';
+            state.draftComment = '';
+            render();
+            window.scrollTo(0, 0);
+          }
         });
       })(openers[o]);
     }
 
-    // Country detail
     var $back = document.getElementById('back-btn');
-    if ($back) $back.addEventListener('click', function() { state.view = 'main'; render(); window.scrollTo(0, 0); });
+    if ($back) $back.addEventListener('click', function() {
+      state.view = 'main';
+      render();
+      window.scrollTo(0, 0);
+    });
 
-    // Logout (now lives inside the profile view)
     var $logout = document.getElementById('logout-btn');
     if ($logout) $logout.addEventListener('click', function() {
       if (confirm('Sign out? Your scores stay saved — you can resume by tapping your name on the welcome screen.')) {
@@ -2243,7 +2203,6 @@ main { padding-bottom: 40px; }
       }
     });
 
-    // Profile clicks (player rows on leaderboard)
     var profileOpeners = document.querySelectorAll('[data-profile]');
     for (var pi = 0; pi < profileOpeners.length; pi++) {
       (function(el) {
@@ -2267,6 +2226,7 @@ main { padding-bottom: 40px; }
         });
       })(scoreBtns[s]);
     }
+
     var $clear = document.querySelector('[data-clear-score]');
     if ($clear) $clear.addEventListener('click', function() { setScore(state.activeCountry.code, null); });
 
@@ -2312,30 +2272,47 @@ main { padding-bottom: 40px; }
     }
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  // Boot
-  // ═══════════════════════════════════════════════════════════════
-  // Boot
-  if (state.user && state.activeRoomCode && activeRoom() && activeRoom().users[state.user.id]) {
-    // Returning to a known room with a remembered identity
-    state.view = 'main';
-  } else if (state.activeRoomCode) {
-    // Have a room but not logged in — go to name entry
-    state.user = null;
-    clearSessionUser();
-    state.lobbyStage = 'name';
-    state.view = 'welcome';
-  } else {
-    // No room — show lobby
-    state.user = null;
-    clearSessionUser();
-    state.view = 'welcome';
+  async function boot() {
+    var hashRoom = readHashRoom();
+    var sessionRoom = loadSessionRoom();
+    var candidate = hashRoom || sessionRoom;
+
+    if (candidate) {
+      try {
+        var room = await fetchRoomFromCloud(candidate);
+        if (room) {
+          if (!state.store.rooms) state.store.rooms = {};
+          state.store.rooms[candidate] = room;
+          state.activeRoomCode = candidate;
+          saveSessionRoom(candidate);
+          writeHashRoom(candidate);
+        } else if (hashRoom) {
+          state.lobbyStage = 'join';
+          state.pendingRoomCode = hashRoom;
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    if (state.user && state.activeRoomCode && activeRoom() && activeRoom().users[state.user.id]) {
+      state.view = 'main';
+    } else if (state.activeRoomCode) {
+      state.user = null;
+      clearSessionUser();
+      state.lobbyStage = 'name';
+      state.view = 'welcome';
+    } else {
+      state.user = null;
+      clearSessionUser();
+      state.view = 'welcome';
+    }
+
+    render();
+    window.__esc26 = { state: state, reset: resetStore };
   }
-  render();
 
-  // Expose for debugging
-  window.__esc26 = { state: state, reset: resetStore };
-
+  boot();
 })();
 </script>
 
