@@ -1376,7 +1376,7 @@ main { padding-bottom: 40px; }
               '<span class="room-tag-name">' + roomLabel + '</span>' +
               '<span class="room-tag-code">' + escapeHTML(state.activeRoomCode) + '</span>' +
             '</div>' +
-            '<p class="tagline">Score all finalists in performance order. Drop hot takes. See what your friends are saying — live.</p>' +
+            '<p class="tagline">Score all finalists in performance order. Share comments. See what your friends are saying — live.</p>' +
             '<div class="name-card">' +
               '<div class="name-label">What\'s your name?</div>' +
               '<input id="name-input" class="name-input" type="text" placeholder="e.g. Nick" maxlength="24" autocomplete="off">' +
@@ -1435,7 +1435,7 @@ main { padding-bottom: 40px; }
       '<div class="welcome">' +
         '<div class="fade">' +
           heroHTML +
-          '<p class="tagline">Score every country. Drop your hot takes. See what your friends are saying — live.</p>' +
+          '<p class="tagline">Score every country. Share comments. See what your friends are saying — live.</p>' +
           '<div class="lobby-actions">' +
             '<button id="lobby-create" class="lobby-primary">' +
               '<div class="lobby-primary-title">Create a room</div>' +
@@ -1821,7 +1821,7 @@ main { padding-bottom: 40px; }
 
     var commentsHTML = '';
     if (theirComments.length === 0) {
-      commentsHTML = '<div class="profile-empty">No hot takes yet.</div>';
+      commentsHTML = '<div class="profile-empty">No comments yet.</div>';
     } else {
       commentsHTML = theirComments.map(function(cm) {
         var ctry = COUNTRIES_BY_CODE[cm.country];
@@ -1903,7 +1903,7 @@ main { padding-bottom: 40px; }
           '<div class="profile-scores">' + scoresHTML + '</div>' +
         '</section>' +
         '<section class="section">' +
-          '<div class="section-label">' + (isMe ? 'Your hot takes' : 'Their hot takes') + ' (' + theirComments.length + ')</div>' +
+          '<div class="section-label">' + (isMe ? 'Your comments' : 'Their comments') + ' (' + theirComments.length + ')</div>' +
           '<div class="profile-comments">' + commentsHTML + '</div>' +
         '</section>' +
         (isMe ?
@@ -2140,7 +2140,7 @@ main { padding-bottom: 40px; }
         '</section>' +
         votersHTML +
         '<section class="section fade" style="animation-delay:140ms">' +
-          '<div class="section-label">Hot takes (' + cmts.length + ')</div>' +
+          '<div class="section-label">Comments (' + cmts.length + ')</div>' +
           '<div class="cmt-list">' + cmtsHTML + '</div>' +
         '</section>' +
       '</main>' +
