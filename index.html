@@ -830,12 +830,10 @@ main { padding-bottom: 40px; }
   // ═══════════════════════════════════════════════════════════════
   // Local storage (will be replaced by Firebase later)
   // ═══════════════════════════════════════════════════════════════
-  var STORE_KEY = 'esc26_local_store_v5';
+   // Cloud storage via Supabase
   var SESSION_KEY = 'esc26_session_user';
   var ROOM_SESSION_KEY = 'esc26_session_room';
 
-  // Build a starter room. We seed the demo room "DEMO" with mock data
-  // so people opening the app for the first time can poke around.
   function freshRoom() {
     return {
       name: 'New Room',
@@ -846,41 +844,11 @@ main { padding-bottom: 40px; }
       comments: {}
     };
   }
-  function freshDemoRoom() {
-    return {
-      name: 'Demo Room',
-      createdAt: NOW - 30 * 60000,
-      users:        JSON.parse(JSON.stringify(SEED_USERS)),
-      scores:       JSON.parse(JSON.stringify(SEED_SCORES)),
-      scoreEvents:  JSON.parse(JSON.stringify(SEED_SCORE_EVENTS)),
-      comments:     JSON.parse(JSON.stringify(SEED_COMMENTS))
-    };
-  }
+
   function freshStore() {
-    return {
-      rooms: { DEMO: freshDemoRoom() }
-    };
+    return { rooms: {} };
   }
-  function loadStore() {
-    try {
-      var raw = localStorage.getItem(STORE_KEY);
-      if (raw) {
-        var parsed = JSON.parse(raw);
-        if (!parsed.rooms) parsed.rooms = {};
-        if (!parsed.rooms.DEMO) parsed.rooms.DEMO = freshDemoRoom();
-        return parsed;
-      }
-    } catch (e) {}
-    return freshStore();
-  }
-  function saveStore() {
-    try { localStorage.setItem(STORE_KEY, JSON.stringify(state.store)); } catch (e) {}
-  }
-  function resetStore() {
-    state.store = freshStore();
-    saveStore();
-    render();
-  }
+
   function loadSessionUser() {
     try {
       var raw = sessionStorage.getItem(SESSION_KEY);
@@ -888,13 +856,122 @@ main { padding-bottom: 40px; }
     } catch (e) {}
     return null;
   }
-  function saveSessionUser(u) { try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(u)); } catch (e) {} }
-  function clearSessionUser() { try { sessionStorage.removeItem(SESSION_KEY); } catch (e) {} }
+
+  function saveSessionUser(u) {
+    try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(u)); } catch (e) {}
+  }
+
+  function clearSessionUser() {
+    try { sessionStorage.removeItem(SESSION_KEY); } catch (e) {}
+  }
+
   function loadSessionRoom() {
     try { return sessionStorage.getItem(ROOM_SESSION_KEY) || null; } catch (e) { return null; }
   }
-  function saveSessionRoom(code) { try { sessionStorage.setItem(ROOM_SESSION_KEY, code); } catch (e) {} }
-  function clearSessionRoom() { try { sessionStorage.removeItem(ROOM_SESSION_KEY); } catch (e) {} }
+
+  function saveSessionRoom(code) {
+    try { sessionStorage.setItem(ROOM_SESSION_KEY, code); } catch (e) {}
+  }
+
+  function clearSessionRoom() {
+    try { sessionStorage.removeItem(ROOM_SESSION_KEY); } catch (e) {}
+  }
+
+  function saveStore() {
+    // no-op now that Supabase is the source of truth
+  }
+
+  function resetStore() {
+    alert('Demo reset is not wired to Supabase yet.');
+  }
+
+  function mapRoomBundle(roomRow, usersRows, scoresRows, commentsRows, scoreEventRows) {
+    var room = {
+      name: roomRow.name,
+      createdAt: new Date(roomRow.created_at).getTime(),
+      users: {},
+      scores: {},
+      comments: {},
+      scoreEvents: {}
+    };
+
+    for (var i = 0; i < usersRows.length; i++) {
+      var u = usersRows[i];
+      room.users[u.id] = {
+        id: u.id,
+        name: u.name,
+        joinedAt: new Date(u.joined_at).getTime()
+      };
+    }
+
+    for (var j = 0; j < scoresRows.length; j++) {
+      var s = scoresRows[j];
+      if (!room.scores[s.user_id]) room.scores[s.user_id] = {};
+      room.scores[s.user_id][s.country_code] = s.points;
+    }
+
+    for (var k = 0; k < commentsRows.length; k++) {
+      var c = commentsRows[k];
+      room.comments[c.id] = {
+        id: c.id,
+        userId: c.user_id,
+        userName: c.user_name,
+        country: c.country,
+        text: c.text,
+        createdAt: new Date(c.created_at).getTime(),
+        likes: {}
+      };
+    }
+
+    for (var m = 0; m < scoreEventRows.length; m++) {
+      var e = scoreEventRows[m];
+      room.scoreEvents[e.id] = {
+        id: e.id,
+        userId: e.user_id,
+        userName: e.user_name,
+        country: e.country,
+        points: e.points,
+        prev: e.prev,
+        createdAt: new Date(e.created_at).getTime()
+      };
+    }
+
+    return room;
+  }
+
+  async function fetchRoomFromCloud(code) {
+    var roomRes = await supabase.from('rooms').select('*').eq('code', code).maybeSingle();
+    if (roomRes.error) throw roomRes.error;
+    if (!roomRes.data) return null;
+
+    var usersRes = await supabase.from('users').select('*').eq('room_code', code);
+    if (usersRes.error) throw usersRes.error;
+
+    var scoresRes = await supabase.from('scores').select('*').eq('room_code', code);
+    if (scoresRes.error) throw scoresRes.error;
+
+    var commentsRes = await supabase.from('comments').select('*').eq('room_code', code);
+    if (commentsRes.error) throw commentsRes.error;
+
+    var eventsRes = await supabase.from('score_events').select('*').eq('room_code', code);
+    if (eventsRes.error) throw eventsRes.error;
+
+    return mapRoomBundle(
+      roomRes.data,
+      usersRes.data || [],
+      scoresRes.data || [],
+      commentsRes.data || [],
+      eventsRes.data || []
+    );
+  }
+
+  async function refreshActiveRoom() {
+    if (!state.activeRoomCode) return;
+    var room = await fetchRoomFromCloud(state.activeRoomCode);
+    if (!room) return;
+    if (!state.store.rooms) state.store.rooms = {};
+    state.store.rooms[state.activeRoomCode] = room;
+  }
 
   // Convenience: live reference to the active room object
   function activeRoom() {
