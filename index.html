@@ -256,7 +256,6 @@ body {
   color: rgba(255,255,255,0.85);
   max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-
 .tabs { display: flex; padding: 0 8px 4px; gap: 2px; }
 .tab { flex: 1; padding: 10px 0; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.4); position: relative; transition: color .15s; }
 .tab:hover { color: rgba(255,255,255,0.7); }
@@ -1545,7 +1544,6 @@ main { padding-bottom: 40px; }
 
     var others = [];
     for (var uid in users) {
-      if (uid === me) continue;
       var u = users[uid];
       others.push({
         id: uid,
