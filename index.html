@@ -726,6 +726,7 @@ main { padding-bottom: 40px; }
 </div>
 
 <script>
+<script>
 (function() {
   'use strict';
 
@@ -774,9 +775,6 @@ main { padding-bottom: 40px; }
   var COUNTRIES_BY_CODE = {};
   for (var i = 0; i < COUNTRIES.length; i++) COUNTRIES_BY_CODE[COUNTRIES[i].code] = COUNTRIES[i];
 
-  // ═══════════════════════════════════════════════════════════════
-  // Cloud storage via Supabase
-  // ═══════════════════════════════════════════════════════════════
   var SESSION_KEY = 'esc26_session_user';
   var ROOM_SESSION_KEY = 'esc26_session_room';
 
@@ -827,108 +825,111 @@ main { padding-bottom: 40px; }
     try { sessionStorage.removeItem(ROOM_SESSION_KEY); } catch (e) {}
   }
 
-  function saveStore() {
-    // no-op now that Supabase is the source of truth
-  }
-
+  function saveStore() {}
   function resetStore() {
     alert('Reset is not wired to Supabase yet.');
   }
 
-function mapRoomBundle(roomRow, usersRows, scoresRows, commentsRows, scoreEventRows, likesRows) {
-  var room = {
-    name: roomRow.name,
-    createdAt: new Date(roomRow.created_at).getTime(),
-    users: {},
-    scores: {},
-    comments: {},
-    scoreEvents: {}
-  };
-
-  for (var i = 0; i < usersRows.length; i++) {
-    var u = usersRows[i];
-    room.users[u.id] = {
-      id: u.id,
-      name: u.name,
-      joinedAt: new Date(u.joined_at).getTime()
+  function mapRoomBundle(roomRow, usersRows, scoresRows, commentsRows, scoreEventRows, likesRows) {
+    var room = {
+      name: roomRow.name,
+      createdAt: new Date(roomRow.created_at).getTime(),
+      users: {},
+      scores: {},
+      comments: {},
+      scoreEvents: {}
     };
-  }
 
-  for (var j = 0; j < scoresRows.length; j++) {
-    var s = scoresRows[j];
-    if (!room.scores[s.user_id]) room.scores[s.user_id] = {};
-    room.scores[s.user_id][s.country_code] = s.points;
-  }
-
-  for (var k = 0; k < commentsRows.length; k++) {
-    var c = commentsRows[k];
-    room.comments[c.id] = {
-      id: c.id,
-      userId: c.user_id,
-      userName: c.user_name,
-      country: c.country,
-      text: c.text,
-      createdAt: new Date(c.created_at).getTime(),
-      likes: {}
-    };
-  }
-
-  for (var m = 0; m < scoreEventRows.length; m++) {
-    var e = scoreEventRows[m];
-    room.scoreEvents[e.id] = {
-      id: e.id,
-      userId: e.user_id,
-      userName: e.user_name,
-      country: e.country,
-      points: e.points,
-      prev: e.prev,
-      createdAt: new Date(e.created_at).getTime()
-    };
-  }
-
-  for (var n = 0; n < likesRows.length; n++) {
-    var like = likesRows[n];
-    if (room.comments[like.comment_id]) {
-      room.comments[like.comment_id].likes[like.user_id] = new Date(like.created_at).getTime();
+    for (var i = 0; i < usersRows.length; i++) {
+      var u = usersRows[i];
+      room.users[u.id] = {
+        id: u.id,
+        name: u.name,
+        joinedAt: new Date(u.joined_at).getTime()
+      };
     }
+
+    for (var j = 0; j < scoresRows.length; j++) {
+      var s = scoresRows[j];
+      if (!room.scores[s.user_id]) room.scores[s.user_id] = {};
+      room.scores[s.user_id][s.country_code] = s.points;
+    }
+
+    for (var k = 0; k < commentsRows.length; k++) {
+      var c = commentsRows[k];
+      room.comments[c.id] = {
+        id: c.id,
+        userId: c.user_id,
+        userName: c.user_name,
+        country: c.country,
+        text: c.text,
+        createdAt: new Date(c.created_at).getTime(),
+        likes: {}
+      };
+    }
+
+    for (var m = 0; m < scoreEventRows.length; m++) {
+      var e = scoreEventRows[m];
+      room.scoreEvents[e.id] = {
+        id: e.id,
+        userId: e.user_id,
+        userName: e.user_name,
+        country: e.country,
+        points: e.points,
+        prev: e.prev,
+        createdAt: new Date(e.created_at).getTime()
+      };
+    }
+
+    for (var n = 0; n < likesRows.length; n++) {
+      var like = likesRows[n];
+      if (room.comments[like.comment_id]) {
+        room.comments[like.comment_id].likes[like.user_id] = new Date(like.created_at).getTime();
+      }
+    }
+
+    return room;
   }
 
-  return room;
-}
+  async function fetchRoomFromCloud(code) {
+    var roomRes = await db.from('rooms').select('*').eq('code', code).maybeSingle();
+    if (roomRes.error) throw roomRes.error;
+    if (!roomRes.data) return null;
 
-async function fetchRoomFromCloud(code) {
-  var roomRes = await db.from('rooms').select('*').eq('code', code).maybeSingle();
-  if (roomRes.error) throw roomRes.error;
-  if (!roomRes.data) return null;
+    var usersRes = await db.from('users').select('*').eq('room_code', code);
+    if (usersRes.error) throw usersRes.error;
 
-  var usersRes = await db.from('users').select('*').eq('room_code', code);
-  if (usersRes.error) throw usersRes.error;
+    var scoresRes = await db.from('scores').select('*').eq('room_code', code);
+    if (scoresRes.error) throw scoresRes.error;
 
-  var scoresRes = await db.from('scores').select('*').eq('room_code', code);
-  if (scoresRes.error) throw scoresRes.error;
+    var commentsRes = await db.from('comments').select('*').eq('room_code', code);
+    if (commentsRes.error) throw commentsRes.error;
 
-  var commentsRes = await db.from('comments').select('*').eq('room_code', code);
-  if (commentsRes.error) throw commentsRes.error;
+    var eventsRes = await db.from('score_events').select('*').eq('room_code', code);
+    if (eventsRes.error) throw eventsRes.error;
 
-  var eventsRes = await db.from('score_events').select('*').eq('room_code', code);
-  if (eventsRes.error) throw eventsRes.error;
+    var commentIds = (commentsRes.data || []).map(function(c) { return c.id; });
+    var likesRows = [];
 
-  var likesRes = await db
-    .from('comment_likes')
-    .select('comment_id,user_id,created_at')
-    .in('comment_id', (commentsRes.data || []).map(function(c) { return c.id; }));
+    if (commentIds.length > 0) {
+      var likesRes = await db
+        .from('comment_likes')
+        .select('comment_id,user_id,created_at')
+        .in('comment_id', commentIds);
 
-  if (likesRes.error && (commentsRes.data || []).length > 0) throw likesRes.error;
+      if (likesRes.error) throw likesRes.error;
+      likesRows = likesRes.data || [];
+    }
 
-  return mapRoomBundle(
-    roomRes.data,
-    usersRes.data || [],
-    scoresRes.data || [],
-    commentsRes.data || [],
-    eventsRes.data || [],
-    likesRes.data || []
-  );
-}
+    return mapRoomBundle(
+      roomRes.data,
+      usersRes.data || [],
+      scoresRes.data || [],
+      commentsRes.data || [],
+      eventsRes.data || [],
+      likesRows
+    );
+  }
 
   async function refreshActiveRoom() {
     if (!state.activeRoomCode) return;
@@ -980,6 +981,9 @@ async function fetchRoomFromCloud(code) {
     draftComment: ''
   };
 
+  var roomSubscription = null;
+  var roomRefreshTimer = null;
+
   function nameToId(name) {
     var s = String(name || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
     return s || ('guest_' + Math.random().toString(36).slice(2, 8));
@@ -1018,6 +1022,69 @@ async function fetchRoomFromCloud(code) {
     return byCountry;
   }
 
+  function stopRoomSubscription() {
+    if (roomSubscription) {
+      db.removeChannel(roomSubscription);
+      roomSubscription = null;
+    }
+    if (roomRefreshTimer) {
+      clearTimeout(roomRefreshTimer);
+      roomRefreshTimer = null;
+    }
+  }
+
+  function startRoomSubscription() {
+    stopRoomSubscription();
+    if (!state.activeRoomCode) return;
+
+    function queueRefresh() {
+      if (roomRefreshTimer) clearTimeout(roomRefreshTimer);
+      roomRefreshTimer = setTimeout(async function() {
+        try {
+          await refreshActiveRoom();
+          render();
+        } catch (e) {
+          console.error('Realtime refresh failed', e);
+        }
+      }, 150);
+    }
+
+    roomSubscription = db
+      .channel('room-' + state.activeRoomCode)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'users',
+        filter: 'room_code=eq.' + state.activeRoomCode
+      }, queueRefresh)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'scores',
+        filter: 'room_code=eq.' + state.activeRoomCode
+      }, queueRefresh)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'comments',
+        filter: 'room_code=eq.' + state.activeRoomCode
+      }, queueRefresh)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'score_events',
+        filter: 'room_code=eq.' + state.activeRoomCode
+      }, queueRefresh)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'comment_likes'
+      }, queueRefresh)
+      .subscribe(function(status) {
+        console.log('Realtime status:', status);
+      });
+  }
+
   async function joinUser(rawName) {
     var nm = String(rawName || '').trim();
     if (!nm || !state.activeRoomCode) return;
@@ -1039,6 +1106,7 @@ async function fetchRoomFromCloud(code) {
     state.user = u;
     saveSessionUser(u);
     await refreshActiveRoom();
+    startRoomSubscription();
     state.view = 'main';
     render();
   }
@@ -1047,6 +1115,7 @@ async function fetchRoomFromCloud(code) {
     if (!u) return;
     state.user = u;
     saveSessionUser(u);
+    startRoomSubscription();
     state.view = 'main';
     render();
   }
@@ -1056,6 +1125,7 @@ async function fetchRoomFromCloud(code) {
     state.user = null;
     state.view = 'welcome';
     state.lobbyStage = state.activeRoomCode ? 'name' : 'choose';
+    stopRoomSubscription();
     render();
   }
 
@@ -1069,6 +1139,7 @@ async function fetchRoomFromCloud(code) {
     state.lobbyStage = 'choose';
     state.lobbyError = '';
     state.view = 'welcome';
+    stopRoomSubscription();
     render();
   }
 
@@ -1095,6 +1166,7 @@ async function fetchRoomFromCloud(code) {
     writeHashRoom(code);
 
     await refreshActiveRoom();
+    startRoomSubscription();
     render();
   }
 
@@ -1124,6 +1196,7 @@ async function fetchRoomFromCloud(code) {
       state.lobbyError = '';
       saveSessionRoom(code);
       writeHashRoom(code);
+      startRoomSubscription();
       render();
     } catch (err) {
       state.lobbyError = 'Join failed: ' + (err && err.message ? err.message : String(err));
@@ -1138,7 +1211,7 @@ async function fetchRoomFromCloud(code) {
     var prev = activeRoom().scores[uid] ? activeRoom().scores[uid][countryCode] : null;
 
     if (points === null) {
-      var delRes = await supabase
+      var delRes = await db
         .from('scores')
         .delete()
         .eq('room_code', state.activeRoomCode)
@@ -1214,40 +1287,40 @@ async function fetchRoomFromCloud(code) {
     render();
   }
 
-async function toggleLike(cid) {
-  if (!state.user) return;
+  async function toggleLike(cid) {
+    if (!state.user) return;
 
-  var comment = activeRoom().comments[cid];
-  if (!comment) return;
+    var comment = activeRoom().comments[cid];
+    if (!comment) return;
 
-  var alreadyLiked = comment.likes && comment.likes[state.user.id];
+    var alreadyLiked = comment.likes && comment.likes[state.user.id];
 
-  if (alreadyLiked) {
-    var delRes = await db
-      .from('comment_likes')
-      .delete()
-      .eq('comment_id', cid)
-      .eq('user_id', state.user.id);
+    if (alreadyLiked) {
+      var delRes = await db
+        .from('comment_likes')
+        .delete()
+        .eq('comment_id', cid)
+        .eq('user_id', state.user.id);
 
-    if (delRes.error) {
-      alert('Could not remove like right now.');
-      return;
+      if (delRes.error) {
+        alert('Could not remove like right now.');
+        return;
+      }
+    } else {
+      var insRes = await db.from('comment_likes').insert({
+        comment_id: cid,
+        user_id: state.user.id
+      });
+
+      if (insRes.error) {
+        alert('Could not like comment right now.');
+        return;
+      }
     }
-  } else {
-    var insRes = await db.from('comment_likes').insert({
-      comment_id: cid,
-      user_id: state.user.id
-    });
 
-    if (insRes.error) {
-      alert('Could not like comment right now.');
-      return;
-    }
+    await refreshActiveRoom();
+    render();
   }
-
-  await refreshActiveRoom();
-  render();
-}
 
   var $app = document.getElementById('app');
 
@@ -1319,6 +1392,7 @@ async function toggleLike(cid) {
     }
 
     if (stage === 'create') {
+      var createErrorHTML = state.lobbyError ? '<div class="lobby-error">' + escapeHTML(state.lobbyError) + '</div>' : '';
       return '' +
         '<div class="welcome">' +
           '<div class="fade">' +
@@ -1327,6 +1401,7 @@ async function toggleLike(cid) {
             '<div class="name-card">' +
               '<div class="name-label">Room name</div>' +
               '<input id="room-name-input" class="name-input" type="text" placeholder="e.g. Nick\'s Eurovision Party" maxlength="40" autocomplete="off">' +
+              createErrorHTML +
               '<button id="create-go" class="go-btn">Create Room →</button>' +
             '</div>' +
             '<button id="back-to-choose" class="lobby-link">← Back</button>' +
@@ -2332,6 +2407,7 @@ async function toggleLike(cid) {
           if (!state.store.rooms) state.store.rooms = {};
           state.store.rooms[candidate] = room;
           state.activeRoomCode = candidate;
+          startRoomSubscription();
           saveSessionRoom(candidate);
           writeHashRoom(candidate);
         } else if (hashRoom) {
