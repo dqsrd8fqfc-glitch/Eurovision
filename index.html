@@ -1199,9 +1199,40 @@ main { padding-bottom: 40px; }
     render();
   }
 
-  function toggleLike(cid) {
-    alert('Comment likes are not wired to Supabase yet.');
+async function toggleLike(cid) {
+  if (!state.user) return;
+
+  var comment = activeRoom().comments[cid];
+  if (!comment) return;
+
+  var alreadyLiked = comment.likes && comment.likes[state.user.id];
+
+  if (alreadyLiked) {
+    var delRes = await db
+      .from('comment_likes')
+      .delete()
+      .eq('comment_id', cid)
+      .eq('user_id', state.user.id);
+
+    if (delRes.error) {
+      alert('Could not remove like right now.');
+      return;
+    }
+  } else {
+    var insRes = await db.from('comment_likes').insert({
+      comment_id: cid,
+      user_id: state.user.id
+    });
+
+    if (insRes.error) {
+      alert('Could not like comment right now.');
+      return;
+    }
   }
+
+  await refreshActiveRoom();
+  render();
+}
 
   var $app = document.getElementById('app');
 
