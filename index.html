@@ -339,6 +339,16 @@ main { padding-bottom: 40px; }
 .country-card:hover { background: rgba(255,255,255,0.07); }
 .country-card:active { transform: scale(0.99); }
 .country-row { display: flex; align-items: center; gap: 12px; }
+.my-score-col {
+  flex-shrink: 0; width: 40px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+}
+.my-score-label {
+  font-size: 7px; line-height: 1.05;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: rgba(255,255,255,0.38);
+  text-align: center;
+}
 .run-num {
   flex-shrink: 0; width: 26px; text-align: center;
   font-weight: 800; font-size: 13px; letter-spacing: -0.02em;
@@ -354,6 +364,7 @@ main { padding-bottom: 40px; }
 .country-stats { text-align: right; flex-shrink: 0; }
 .stat-num { font-weight: 800; font-size: 20px; line-height: 1; }
 .stat-label { font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-top: 4px; }
+.stat-sub { font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.32); margin-top: 2px; }
 .no-vote { font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.3); }
 .cmt-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; color: rgba(0,209,255,0.85); font-weight: 600; margin-left: 6px; }
 
@@ -367,7 +378,6 @@ main { padding-bottom: 40px; }
 }
 
 .my-badge {
-  position: absolute; top: 8px; right: 10px;
   width: 26px; height: 26px; border-radius: 999px;
   display: flex; align-items: center; justify-content: center;
   font-weight: 800; font-size: 12px;
@@ -377,13 +387,17 @@ main { padding-bottom: 40px; }
 .my-badge.douze { background: linear-gradient(135deg, #fde047, #f59e0b); color: #0a0418; animation: glow 2.2s ease-in-out infinite; }
 
 /* ─── Country detail ───────────────────────────────────────────── */
-.detail-header { padding: 12px 14px; display: flex; align-items: center; gap: 10px; }
+.detail-header { padding: 12px 14px; display: flex; align-items: center; gap: 12px; }
 .icon-btn {
-  width: 36px; height: 36px; border-radius: 999px;
-  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-  display: flex; align-items: center; justify-content: center; color: #fff;
+  min-width: 88px; height: 42px; padding: 0 14px; border-radius: 999px;
+  background: linear-gradient(135deg, rgba(236,72,153,0.26), rgba(0,209,255,0.18));
+  border: 1px solid rgba(255,255,255,0.16);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.24);
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; color: #fff;
 }
+.icon-btn:hover { border-color: rgba(255,255,255,0.28); }
 .icon-btn:active { transform: scale(0.94); }
+.icon-btn-label { font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; }
 .detail-header-title { font-weight: 800; font-size: 16px; text-transform: uppercase; letter-spacing: -0.01em; display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; }
 .detail-header-title .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .run-tag {
@@ -566,11 +580,15 @@ main { padding-bottom: 40px; }
 .player-douze .more { font-size: 10px; color: rgba(255,255,255,0.4); }
 
 .trophy {
+  display: block; width: 100%; text-align: left;
   position: relative; overflow: hidden;
   border-radius: 22px; padding: 18px; margin-bottom: 14px;
   background: linear-gradient(135deg, rgba(236,72,153,0.3), rgba(217,70,239,0.2), rgba(0,209,255,0.18));
   border: 1px solid rgba(253,224,71,0.3);
+  transition: transform .1s, border-color .15s, background .15s;
 }
+.trophy:hover { border-color: rgba(253,224,71,0.55); }
+.trophy:active { transform: scale(0.99); }
 .trophy-tag { position: absolute; top: 10px; right: 14px; font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(253,224,71,0.8); }
 .trophy-row { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
 .trophy-rank {
@@ -589,7 +607,11 @@ main { padding-bottom: 40px; }
   display: flex; align-items: center; gap: 12px;
   background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
   border-radius: 12px; padding: 10px 12px; margin-bottom: 6px;
+  width: 100%; text-align: left;
+  transition: background .15s, transform .1s, border-color .15s;
 }
+.rank-row:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.18); }
+.rank-row:active { transform: scale(0.99); }
 .rank-num { font-weight: 800; font-size: 13px; color: rgba(255,255,255,0.4); width: 26px; text-align: center; flex-shrink: 0; }
 .rank-flag { font-size: 24px; line-height: 1; }
 .rank-info { flex: 1; min-width: 0; }
@@ -1595,21 +1617,23 @@ main { padding-bottom: 40px; }
         if (country.song !== 'TBA') subHTML += '<span style="color:rgba(255,255,255,0.4)"> · ' + escapeHTML(country.song) + '</span>';
       }
 
+      var votesMeta = keys.length + ' ' + (keys.length === 1 ? 'vote' : 'votes');
+      var commentsMeta = cmtCount + ' ' + (cmtCount === 1 ? 'comment' : 'comments');
       var statHTML;
       if (keys.length > 0) {
         statHTML =
           '<div class="stat-num">' + avg.toFixed(1) + '</div>' +
-          '<div class="stat-label">' + keys.length + ' ' + (keys.length === 1 ? 'vote' : 'votes') + '</div>';
+          '<div class="stat-label">' + votesMeta + '</div>' +
+          '<div class="stat-sub">' + commentsMeta + '</div>';
       } else {
-        statHTML = '<div class="no-vote">no votes</div>';
+        statHTML =
+          '<div class="no-vote">no votes</div>' +
+          '<div class="stat-sub">' + commentsMeta + '</div>';
       }
 
-      var myBadgeHTML = '';
-      if (myScore !== null) {
-        myBadgeHTML = '<div class="my-badge' + (myScore === 12 ? ' douze' : '') + '">' + myScore + '</div>';
-      }
-
-      var cmtBadgeHTML = cmtCount > 0 ? '<span class="cmt-badge">💬 ' + cmtCount + '</span>' : '';
+      var myVoteHTML = myScore !== null
+        ? '<div class="my-score-col"><div class="my-badge' + (myScore === 12 ? ' douze' : '') + '">' + myScore + '</div><div class="my-score-label">Your<br>Score</div></div>'
+        : '';
 
       var dividerHTML = '';
       if (myScore !== null && !votedSeen) {
@@ -1620,18 +1644,17 @@ main { padding-bottom: 40px; }
       return dividerHTML +
         '<button class="country-card fade" data-country="' + country.code + '" style="animation-delay:' + Math.min(i * 14, 500) + 'ms">' +
           '<div class="country-row">' +
+            myVoteHTML +
             '<div class="run-num">' + (country.running || '?') + '</div>' +
             '<div class="flag">' + country.flag + '</div>' +
             '<div class="country-info">' +
               '<div style="display:flex;align-items:baseline">' +
                 '<div class="country-name">' + escapeHTML(country.name) + '</div>' +
-                cmtBadgeHTML +
               '</div>' +
               '<div class="country-sub">' + subHTML + '</div>' +
             '</div>' +
             '<div class="country-stats">' + statHTML + '</div>' +
           '</div>' +
-          myBadgeHTML +
         '</button>';
     }).join('');
 
@@ -1664,7 +1687,7 @@ main { padding-bottom: 40px; }
 
     var top = ranked[0];
     var trophyHTML =
-      '<div class="trophy fade">' +
+      '<button class="trophy fade" data-country="' + top.country.code + '">' +
         '<div class="trophy-tag">🏆 Leading</div>' +
         '<div class="trophy-row">' +
           '<div class="trophy-rank">#1</div>' +
@@ -1675,11 +1698,11 @@ main { padding-bottom: 40px; }
           '</div>' +
           '<div class="trophy-pts"><div class="n">' + top.total + '</div><div class="l">points</div></div>' +
         '</div>' +
-      '</div>';
+      '</button>';
 
     var restHTML = ranked.slice(1).map(function(r, i) {
       return '' +
-        '<div class="rank-row fade" style="animation-delay:' + (i * 14) + 'ms">' +
+        '<button class="rank-row fade" data-country="' + r.country.code + '" style="animation-delay:' + (i * 14) + 'ms">' +
           '<div class="rank-num">' + (i + 2) + '</div>' +
           '<div class="rank-flag">' + r.country.flag + '</div>' +
           '<div class="rank-info">' +
@@ -1687,7 +1710,7 @@ main { padding-bottom: 40px; }
             '<div class="rank-sub">avg ' + r.avg.toFixed(1) + ' · ' + r.voters + ' ' + (r.voters === 1 ? 'vote' : 'votes') + '</div>' +
           '</div>' +
           '<div class="rank-pts">' + r.total + '</div>' +
-        '</div>';
+        '</button>';
     }).join('');
 
     var rankingLabel = ranked.length > 1 ? '<div class="section-label" style="margin:14px 0 8px;padding-left:4px">Ranking</div>' : '';
@@ -1768,6 +1791,7 @@ main { padding-bottom: 40px; }
         '<header class="header"><div class="detail-header">' +
           '<button id="back-btn" class="icon-btn" aria-label="Back">' +
             '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>' +
+            '<span class="icon-btn-label">Back</span>' +
           '</button>' +
           '<div class="detail-header-title"><span class="name">Profile</span></div>' +
         '</div></header>' +
@@ -1883,6 +1907,7 @@ main { padding-bottom: 40px; }
         '<div class="detail-header">' +
           '<button id="back-btn" class="icon-btn" aria-label="Back">' +
             '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>' +
+            '<span class="icon-btn-label">Back</span>' +
           '</button>' +
           '<div class="detail-header-title"><span class="name">' + (isMe ? 'My Profile' : escapeHTML(u.name)) + '</span></div>' +
         '</div>' +
@@ -2121,6 +2146,7 @@ main { padding-bottom: 40px; }
         '<div class="detail-header">' +
           '<button id="back-btn" class="icon-btn" aria-label="Back">' +
             '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>' +
+            '<span class="icon-btn-label">Back</span>' +
           '</button>' +
           '<div class="detail-header-title"><span class="run-tag">#' + (country.running || '?') + '</span><span style="font-size:22px">' + country.flag + '</span><span class="name">' + escapeHTML(country.name) + '</span></div>' +
         '</div>' +
