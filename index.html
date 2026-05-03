@@ -835,85 +835,100 @@ main { padding-bottom: 40px; }
     alert('Reset is not wired to Supabase yet.');
   }
 
-  function mapRoomBundle(roomRow, usersRows, scoresRows, commentsRows, scoreEventRows) {
-    var room = {
-      name: roomRow.name,
-      createdAt: new Date(roomRow.created_at).getTime(),
-      users: {},
-      scores: {},
-      comments: {},
-      scoreEvents: {}
+function mapRoomBundle(roomRow, usersRows, scoresRows, commentsRows, scoreEventRows, likesRows) {
+  var room = {
+    name: roomRow.name,
+    createdAt: new Date(roomRow.created_at).getTime(),
+    users: {},
+    scores: {},
+    comments: {},
+    scoreEvents: {}
+  };
+
+  for (var i = 0; i < usersRows.length; i++) {
+    var u = usersRows[i];
+    room.users[u.id] = {
+      id: u.id,
+      name: u.name,
+      joinedAt: new Date(u.joined_at).getTime()
     };
-
-    for (var i = 0; i < usersRows.length; i++) {
-      var u = usersRows[i];
-      room.users[u.id] = {
-        id: u.id,
-        name: u.name,
-        joinedAt: new Date(u.joined_at).getTime()
-      };
-    }
-
-    for (var j = 0; j < scoresRows.length; j++) {
-      var s = scoresRows[j];
-      if (!room.scores[s.user_id]) room.scores[s.user_id] = {};
-      room.scores[s.user_id][s.country_code] = s.points;
-    }
-
-    for (var k = 0; k < commentsRows.length; k++) {
-      var c = commentsRows[k];
-      room.comments[c.id] = {
-        id: c.id,
-        userId: c.user_id,
-        userName: c.user_name,
-        country: c.country,
-        text: c.text,
-        createdAt: new Date(c.created_at).getTime(),
-        likes: {}
-      };
-    }
-
-    for (var m = 0; m < scoreEventRows.length; m++) {
-      var e = scoreEventRows[m];
-      room.scoreEvents[e.id] = {
-        id: e.id,
-        userId: e.user_id,
-        userName: e.user_name,
-        country: e.country,
-        points: e.points,
-        prev: e.prev,
-        createdAt: new Date(e.created_at).getTime()
-      };
-    }
-
-    return room;
   }
 
-  async function fetchRoomFromCloud(code) {
-    var roomRes = await db.from('rooms').select('*').eq('code', code).maybeSingle();
-    if (roomRes.error) throw roomRes.error;
-    if (!roomRes.data) return null;
-
-    var usersRes = await db.from('users').select('*').eq('room_code', code);
-    if (usersRes.error) throw usersRes.error;
-
-    var scoresRes = await db.from('scores').select('*').eq('room_code', code);
-    if (scoresRes.error) throw scoresRes.error;
-
-    var commentsRes = await db.from('comments').select('*').eq('room_code', code);
-    if (commentsRes.error) throw commentsRes.error;
-
-    var eventsRes = await db.from('score_events').select('*').eq('room_code', code);
-    if (eventsRes.error) throw eventsRes.error;
-
-    return mapRoomBundle(
-      roomRes.data,
-      usersRes.data || [],
-      scoresRes.data || [],
-      commentsRes.data || [],
-      eventsRes.data || []
-    );
+  for (var j = 0; j < scoresRows.length; j++) {
+    var s = scoresRows[j];
+    if (!room.scores[s.user_id]) room.scores[s.user_id] = {};
+    room.scores[s.user_id][s.country_code] = s.points;
   }
+
+  for (var k = 0; k < commentsRows.length; k++) {
+    var c = commentsRows[k];
+    room.comments[c.id] = {
+      id: c.id,
+      userId: c.user_id,
+      userName: c.user_name,
+      country: c.country,
+      text: c.text,
+      createdAt: new Date(c.created_at).getTime(),
+      likes: {}
+    };
+  }
+
+  for (var m = 0; m < scoreEventRows.length; m++) {
+    var e = scoreEventRows[m];
+    room.scoreEvents[e.id] = {
+      id: e.id,
+      userId: e.user_id,
+      userName: e.user_name,
+      country: e.country,
+      points: e.points,
+      prev: e.prev,
+      createdAt: new Date(e.created_at).getTime()
+    };
+  }
+
+  for (var n = 0; n < likesRows.length; n++) {
+    var like = likesRows[n];
+    if (room.comments[like.comment_id]) {
+      room.comments[like.comment_id].likes[like.user_id] = new Date(like.created_at).getTime();
+    }
+  }
+
+  return room;
+}
+
+async function fetchRoomFromCloud(code) {
+  var roomRes = await db.from('rooms').select('*').eq('code', code).maybeSingle();
+  if (roomRes.error) throw roomRes.error;
+  if (!roomRes.data) return null;
+
+  var usersRes = await db.from('users').select('*').eq('room_code', code);
+  if (usersRes.error) throw usersRes.error;
+
+  var scoresRes = await db.from('scores').select('*').eq('room_code', code);
+  if (scoresRes.error) throw scoresRes.error;
+
+  var commentsRes = await db.from('comments').select('*').eq('room_code', code);
+  if (commentsRes.error) throw commentsRes.error;
+
+  var eventsRes = await db.from('score_events').select('*').eq('room_code', code);
+  if (eventsRes.error) throw eventsRes.error;
+
+  var likesRes = await db
+    .from('comment_likes')
+    .select('comment_id,user_id,created_at')
+    .in('comment_id', (commentsRes.data || []).map(function(c) { return c.id; }));
+
+  if (likesRes.error && (commentsRes.data || []).length > 0) throw likesRes.error;
+
+  return mapRoomBundle(
+    roomRes.data,
+    usersRes.data || [],
+    scoresRes.data || [],
+    commentsRes.data || [],
+    eventsRes.data || [],
+    likesRes.data || []
+  );
+}
 
   async function refreshActiveRoom() {
     if (!state.activeRoomCode) return;
