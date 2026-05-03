@@ -1111,7 +1111,7 @@ main { padding-bottom: 40px; }
       writeHashRoom(code);
       render();
     } catch (err) {
-      state.lobbyError = 'Could not join room right now.';
+      state.lobbyError = 'Join failed: ' + (err && err.message ? err.message : String(err));
       render();
     }
   }
