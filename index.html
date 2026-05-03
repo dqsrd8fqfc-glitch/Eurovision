@@ -8,9 +8,9 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  const SUPABASE_URL = 'https://nnufhtnximeoaejcesil.supabase.co';
+  const SUPABASE_URL = 'https://nnufhtnximeoaejcesil.db.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_0a0lFDXY85ocX7hI2bWaWw_7ty4W1TD';
-  window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  window.dbClient = window.db.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 </script>
 
 <style>
@@ -729,7 +729,7 @@ main { padding-bottom: 40px; }
 (function() {
   'use strict';
 
-  var supabase = window.supabaseClient;
+  var db = window.dbClient;
 
   var POINTS = [1, 2, 3, 4, 5, 6, 7, 8, 10, 12];
 
@@ -890,20 +890,20 @@ main { padding-bottom: 40px; }
   }
 
   async function fetchRoomFromCloud(code) {
-    var roomRes = await supabase.from('rooms').select('*').eq('code', code).maybeSingle();
+    var roomRes = await db.from('rooms').select('*').eq('code', code).maybeSingle();
     if (roomRes.error) throw roomRes.error;
     if (!roomRes.data) return null;
 
-    var usersRes = await supabase.from('users').select('*').eq('room_code', code);
+    var usersRes = await db.from('users').select('*').eq('room_code', code);
     if (usersRes.error) throw usersRes.error;
 
-    var scoresRes = await supabase.from('scores').select('*').eq('room_code', code);
+    var scoresRes = await db.from('scores').select('*').eq('room_code', code);
     if (scoresRes.error) throw scoresRes.error;
 
-    var commentsRes = await supabase.from('comments').select('*').eq('room_code', code);
+    var commentsRes = await db.from('comments').select('*').eq('room_code', code);
     if (commentsRes.error) throw commentsRes.error;
 
-    var eventsRes = await supabase.from('score_events').select('*').eq('room_code', code);
+    var eventsRes = await db.from('score_events').select('*').eq('room_code', code);
     if (eventsRes.error) throw eventsRes.error;
 
     return mapRoomBundle(
@@ -1010,7 +1010,7 @@ main { padding-bottom: 40px; }
     var id = nameToId(nm);
     var u = { id: id, name: nm, joinedAt: Date.now() };
 
-    var res = await supabase.from('users').upsert({
+    var res = await db.from('users').upsert({
       id: id,
       room_code: state.activeRoomCode,
       name: nm
@@ -1061,7 +1061,7 @@ main { padding-bottom: 40px; }
     var code = genRoomCode();
     var roomName = String(name || '').trim() || ('Room ' + code);
 
-    var res = await supabase.from('rooms').insert({
+    var res = await db.from('rooms').insert({
       code: code,
       name: roomName
     });
@@ -1135,7 +1135,7 @@ main { padding-bottom: 40px; }
         return;
       }
     } else {
-      var scoreRes = await supabase.from('scores').upsert({
+      var scoreRes = await db.from('scores').upsert({
         room_code: state.activeRoomCode,
         user_id: uid,
         country_code: countryCode,
@@ -1148,7 +1148,7 @@ main { padding-bottom: 40px; }
       }
 
       if (prev !== points) {
-        await supabase.from('score_events').insert({
+        await db.from('score_events').insert({
           id: genId('s'),
           room_code: state.activeRoomCode,
           user_id: state.user.id,
@@ -1170,7 +1170,7 @@ main { padding-bottom: 40px; }
     var t = String(text || '').trim();
     if (!t) return;
 
-    var res = await supabase.from('comments').insert({
+    var res = await db.from('comments').insert({
       id: genId('c'),
       room_code: state.activeRoomCode,
       user_id: state.user.id,
@@ -1190,7 +1190,7 @@ main { padding-bottom: 40px; }
   }
 
   async function deleteComment(cid) {
-    var res = await supabase.from('comments').delete().eq('id', cid);
+    var res = await db.from('comments').delete().eq('id', cid);
     if (res.error) {
       alert('Could not delete comment right now.');
       return;
