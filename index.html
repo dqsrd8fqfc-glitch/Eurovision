@@ -755,21 +755,31 @@ main { padding-bottom: 40px; }
   var POINTS = [1, 2, 3, 4, 5, 6, 7, 8, 10, 12];
 
   var COUNTRIES = [
-    { running:  1, code: 'AT', name: 'Austria',        flag: '🇦🇹', artist: 'COSMÓ',                         song: 'Tanzschein',         youtube: 'zPGP9ZphxiY' },
-    { running:  2, code: 'BE', name: 'Belgium',        flag: '🇧🇪', artist: 'ESSYLA',                        song: 'Dancing on the Ice', youtube: '9sfI4g6DWTU' },
-    { running:  3, code: 'HR', name: 'Croatia',        flag: '🇭🇷', artist: 'LELEK',                         song: 'Andromeda',          youtube: 'vl7Jqnw10sU' },
-    { running:  4, code: 'FI', name: 'Finland',        flag: '🇫🇮', artist: 'Linda Lampenius × Pete Parkkonen', song: 'Liekinheitin',    youtube: '9bfwNIYb96Q' },
-    { running:  5, code: 'FR', name: 'France',         flag: '🇫🇷', artist: 'Monroe',                        song: 'Regarde !',          youtube: 'ujoCYrvvTYQ' },
-    { running:  6, code: 'DE', name: 'Germany',        flag: '🇩🇪', artist: 'Sarah Engels',                  song: 'Fire',               youtube: 'AzvRc3eH_rA' },
-    { running:  7, code: 'GR', name: 'Greece',         flag: '🇬🇷', artist: 'Akylas',                        song: 'Ferto',              youtube: 'NGwNTd_DA9s' },
-    { running:  8, code: 'IL', name: 'Israel',         flag: '🇮🇱', artist: 'Noam Bettan',                   song: 'Michelle',           youtube: 'xWCnWSoG8nI' },
-    { running:  9, code: 'IT', name: 'Italy',          flag: '🇮🇹', artist: 'Sal Da Vinci',                  song: 'Per Sempre Sì',      youtube: 'V406FAGkhyQ' },
-    { running: 10, code: 'LT', name: 'Lithuania',      flag: '🇱🇹', artist: 'Lion Ceccah',                   song: 'Sólo Quiero Más',    youtube: '0H-PXnbhG7A' },
-    { running: 11, code: 'MD', name: 'Moldova',        flag: '🇲🇩', artist: 'Satoshi',                       song: 'Viva, Moldova!',     youtube: 'SViojHjNSzc' },
-    { running: 12, code: 'PL', name: 'Poland',         flag: '🇵🇱', artist: 'ALICJA',                        song: 'Pray',               youtube: 'q78cnYIoF9Y' },
-    { running: 13, code: 'RS', name: 'Serbia',         flag: '🇷🇸', artist: 'LAVINA',                        song: 'Kraj Mene',          youtube: 'FJTLKBOOE98' },
-    { running: 14, code: 'SE', name: 'Sweden',         flag: '🇸🇪', artist: 'FELICIA',                       song: 'My System',          youtube: 'ibbfS8iG450' },
-    { running: 15, code: 'GB', name: 'United Kingdom', flag: '🇬🇧', artist: 'LOOK MUM NO COMPUTER',          song: 'Eins, Zwei, Drei',   youtube: 'niMKvJ-Itq8' }
+    { running:  1, code: 'DK', name: 'Denmark',        flag: '🇩🇰', artist: 'Søren Torpegaard Lund',         song: 'Før Vi Går Hjem',    youtube: 'xKzEP9dwoss' },
+    { running:  2, code: 'DE', name: 'Germany',        flag: '🇩🇪', artist: 'Sarah Engels',                  song: 'Fire',               youtube: 'AzvRc3eH_rA' },
+    { running:  3, code: 'IL', name: 'Israel',         flag: '🇮🇱', artist: 'Noam Bettan',                   song: 'Michelle',           youtube: 'xWCnWSoG8nI' },
+    { running:  4, code: 'BE', name: 'Belgium',        flag: '🇧🇪', artist: 'ESSYLA',                        song: 'Dancing on the Ice', youtube: '9sfI4g6DWTU' },
+    { running:  5, code: 'AL', name: 'Albania',        flag: '🇦🇱', artist: 'Alis',                          song: 'Nân',                youtube: 'b9AdRrA554o' },
+    { running:  6, code: 'GR', name: 'Greece',         flag: '🇬🇷', artist: 'Akylas',                        song: 'Ferto',              youtube: 'NGwNTd_DA9s' },
+    { running:  7, code: 'UA', name: 'Ukraine',        flag: '🇺🇦', artist: 'LELÉKA',                        song: 'Ridnym',             youtube: 'SoEXezpblAc' },
+    { running:  8, code: 'AU', name: 'Australia',      flag: '🇦🇺', artist: 'Delta Goodrem',                 song: 'Eclipse',            youtube: 'EUMCr1pnaMY' },
+    { running:  9, code: 'RS', name: 'Serbia',         flag: '🇷🇸', artist: 'LAVINA',                        song: 'Kraj Mene',          youtube: 'FJTLKBOOE98' },
+    { running: 10, code: 'MT', name: 'Malta',          flag: '🇲🇹', artist: 'AIDAN',                         song: 'Bella',              youtube: 'CW6mQLBh6Js' },
+    { running: 11, code: 'CZ', name: 'Czechia',        flag: '🇨🇿', artist: 'Daniel Zizka',                  song: 'Crossroads',         youtube: '6ea25aRGpLo' },
+    { running: 12, code: 'BG', name: 'Bulgaria',       flag: '🇧🇬', artist: 'DARA',                          song: 'Bangaranga',         youtube: 'J3oGYo_mekw' },
+    { running: 13, code: 'HR', name: 'Croatia',        flag: '🇭🇷', artist: 'LELEK',                         song: 'Andromeda',          youtube: 'vl7Jqnw10sU' },
+    { running: 14, code: 'GB', name: 'United Kingdom', flag: '🇬🇧', artist: 'LOOK MUM NO COMPUTER',          song: 'Eins, Zwei, Drei',   youtube: 'niMKvJ-Itq8' },
+    { running: 15, code: 'FR', name: 'France',         flag: '🇫🇷', artist: 'Monroe',                        song: 'Regarde !',          youtube: 'ujoCYrvvTYQ' },
+    { running: 16, code: 'MD', name: 'Moldova',        flag: '🇲🇩', artist: 'Satoshi',                       song: 'Viva, Moldova!',     youtube: 'SViojHjNSzc' },
+    { running: 17, code: 'FI', name: 'Finland',        flag: '🇫🇮', artist: 'Linda Lampenius × Pete Parkkonen', song: 'Liekinheitin',    youtube: '9bfwNIYb96Q' },
+    { running: 18, code: 'PL', name: 'Poland',         flag: '🇵🇱', artist: 'ALICJA',                        song: 'Pray',               youtube: 'q78cnYIoF9Y' },
+    { running: 19, code: 'LT', name: 'Lithuania',      flag: '🇱🇹', artist: 'Lion Ceccah',                   song: 'Sólo Quiero Más',    youtube: '0H-PXnbhG7A' },
+    { running: 20, code: 'SE', name: 'Sweden',         flag: '🇸🇪', artist: 'FELICIA',                       song: 'My System',          youtube: 'ibbfS8iG450' },
+    { running: 21, code: 'CY', name: 'Cyprus',         flag: '🇨🇾', artist: 'Antigoni',                      song: 'JALLA',              youtube: 'TzSs51BiQrE' },
+    { running: 22, code: 'IT', name: 'Italy',          flag: '🇮🇹', artist: 'Sal Da Vinci',                  song: 'Per Sempre Sì',      youtube: 'V406FAGkhyQ' },
+    { running: 23, code: 'NO', name: 'Norway',         flag: '🇳🇴', artist: 'JONAS LOVV',                    song: 'YA YA YA',           youtube: 'MasllzWk_bQ' },
+    { running: 24, code: 'RO', name: 'Romania',        flag: '🇷🇴', artist: 'Alexandra Căpitănescu',         song: 'Choke Me',           youtube: 'yn0YmI0dPb8' },
+    { running: 25, code: 'AT', name: 'Austria',        flag: '🇦🇹', artist: 'COSMÓ',                         song: 'Tanzschein',         youtube: 'zPGP9ZphxiY' }
   ];
 
   var COUNTRIES_BY_CODE = {};
